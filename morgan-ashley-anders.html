@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morgan Anders — Digital Storyteller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #033047; --steel: #304C62; --slate: #5C677D;
+  --grey: #D9D9D9; --cream: #F4F3EE; --white: #ffffff;
+  --display: 'Cormorant Garant', Georgia, serif;
+  --sans: 'Syne', sans-serif;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--cream); color: var(--navy); overflow-x: hidden; }
+
+/* ── Loader ── */
+#loader {
+  position: fixed; inset: 0; background: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999; flex-direction: column; gap: 1.5rem;
+}
+.loader-name {
+  font-family: var(--display); font-style: italic; font-size: 2rem;
+  font-weight: 300; color: rgba(244,243,238,0.55); letter-spacing: 0.06em;
+}
+.loader-track {
+  width: 56px; height: 1px; background: rgba(244,243,238,0.15); overflow: hidden;
+}
+.loader-fill {
+  height: 100%; width: 0; background: rgba(244,243,238,0.6);
+  animation: lfill 0.9s ease forwards;
+}
+@keyframes lfill { to { width: 100%; } }
+
+/* ── Scroll progress ── */
+#progress {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: var(--steel); z-index: 200; width: 0;
+}
+
+/* ── Nav ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: var(--navy); display: flex; align-items: center;
+  justify-content: space-between; padding: 0 5vw; height: 64px;
+  transition: box-shadow 0.4s;
+}
+nav.scrolled { box-shadow: 0 8px 40px rgba(3,48,71,0.5); }
+.nav-wordmark {
+  font-family: var(--display); font-size: 1.35rem; font-weight: 500;
+  color: var(--cream); letter-spacing: 0.08em; text-decoration: none;
+}
+.nav-links { display: flex; gap: 2.5rem; list-style: none; }
+.nav-links a {
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--grey); text-decoration: none;
+  transition: color 0.2s; position: relative;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -4px; left: 0; right: 0;
+  height: 1px; background: var(--cream); transform: scaleX(0);
+  transform-origin: left; transition: transform 0.25s ease;
+}
+.nav-links a:hover, .nav-links a.active { color: var(--cream); }
+.nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+
+/* ── Hero ── */
+#home {
+  min-height: 100vh; display: grid;
+  grid-template-columns: 1fr 1fr; padding-top: 64px;
+}
+.hero-left {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 8vw 4vw 8vw 8vw;
+}
+.hero-eyebrow {
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--slate); margin-bottom: 1.5rem;
+  opacity: 0;
+}
+.hero-name {
+  font-family: var(--display); font-size: clamp(3.5rem, 6vw, 6.5rem);
+  font-weight: 300; line-height: 1.05; overflow: hidden;
+}
+.hero-name-line {
+  display: block; opacity: 0; transform: translateY(100%);
+}
+.hero-name-line em { font-style: italic; color: var(--steel); }
+.hero-tagline {
+  margin-top: 2rem; font-size: 0.85rem; color: var(--slate);
+  max-width: 320px; line-height: 1.7; opacity: 0;
+}
+.hero-cta { margin-top: 3rem; display: flex; gap: 1rem; flex-wrap: wrap; opacity: 0; }
+.btn-primary {
+  display: inline-block; padding: 0.75rem 2rem; background: var(--navy);
+  color: var(--cream); font-family: var(--sans); font-size: 0.72rem;
+  font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+  text-decoration: none; transition: background 0.2s;
+}
+.btn-primary:hover { background: var(--steel); }
+.btn-ghost {
+  display: inline-block; padding: 0.75rem 2rem; border: 1px solid var(--slate);
+  color: var(--slate); font-family: var(--sans); font-size: 0.72rem;
+  font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+  text-decoration: none; transition: border-color 0.2s, color 0.2s;
+}
+.btn-ghost:hover { border-color: var(--navy); color: var(--navy); }
+
+.hero-right { background: var(--steel); position: relative; overflow: hidden; opacity: 0; }
+.hero-right::before {
+  content: ''; position: absolute; top: -30%; left: -20%;
+  width: 80%; height: 80%; border: 1px solid rgba(244,243,238,0.1);
+  border-radius: 50%; pointer-events: none;
+}
+.hero-right::after {
+  content: ''; position: absolute; bottom: -20%; right: -20%;
+  width: 60%; height: 60%; border: 1px solid rgba(244,243,238,0.06);
+  border-radius: 50%; pointer-events: none;
+}
+.hero-disciplines {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; gap: 0.5rem; align-items: center;
+}
+.discipline-tag {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.2em;
+  text-transform: uppercase; color: rgba(244,243,238,0.6);
+  border: 1px solid rgba(244,243,238,0.2); padding: 0.4rem 1.2rem;
+  white-space: nowrap; opacity: 0; transform: translateX(24px);
+}
+.hero-bg-text {
+  position: absolute; bottom: 3rem; left: 3rem; right: 3rem; overflow: hidden;
+}
+.hero-bg-text p {
+  font-family: var(--display); font-size: clamp(4rem, 8vw, 11rem);
+  font-weight: 300; font-style: italic; color: rgba(244,243,238,0.07);
+  line-height: 0.9; white-space: nowrap; transform: translateX(60px); opacity: 0;
+}
+
+/* ── Sections ── */
+section { padding: 7rem 8vw; }
+.section-label {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--slate); margin-bottom: 1rem;
+}
+.section-title {
+  font-family: var(--display); font-size: clamp(2.5rem, 4vw, 4rem);
+  font-weight: 300; line-height: 1.1; color: var(--navy); margin-bottom: 1rem;
+}
+.section-title em { font-style: italic; color: var(--steel); }
+
+/* ── Work ── */
+#work { background: var(--white); }
+.work-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 3.5rem; flex-wrap: wrap; gap: 1rem;
+}
+.work-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.filter-btn {
+  font-family: var(--sans); font-size: 0.68rem; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase; padding: 0.45rem 1.1rem;
+  border: 1px solid var(--grey); background: none; color: var(--slate);
+  cursor: pointer; transition: all 0.2s;
+}
+.filter-btn:hover, .filter-btn.active {
+  background: var(--navy); border-color: var(--navy); color: var(--cream);
+}
+.work-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5px; }
+.work-card {
+  position: relative; overflow: hidden; cursor: pointer;
+  aspect-ratio: 4/3; opacity: 0;
+}
+.work-card-media {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.work-card:hover .work-card-media { transform: scale(1.04); }
+.card-icon { font-size: 2.5rem; opacity: 0.18; }
+.work-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(3,48,71,0.92) 0%, rgba(3,48,71,0) 55%);
+  opacity: 0; transition: opacity 0.35s ease;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 1.5rem; pointer-events: none;
+}
+.work-card:hover .work-overlay { opacity: 1; }
+.card-category {
+  font-size: 0.62rem; font-weight: 600; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--grey); margin-bottom: 0.4rem;
+}
+.card-title {
+  font-family: var(--display); font-size: 1.3rem; font-weight: 400;
+  color: var(--cream); line-height: 1.2; margin-bottom: 0.6rem;
+}
+.card-arrow {
+  width: 28px; height: 28px; border: 1px solid rgba(244,243,238,0.4);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cream); font-size: 0.9rem; align-self: flex-start;
+}
+.work-card.hidden { display: none; }
+
+/* ── About ── */
+#about { display: block; background: var(--cream); }
+.about-intro { margin-bottom: 4rem; }
+.about-intro .section-title { margin-bottom: 2rem; }
+.about-bio {
+  color: var(--slate); line-height: 1.85; font-size: 0.95rem;
+  margin-bottom: 1.2rem; max-width: 620px;
+}
+.about-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 5rem; align-items: start; }
+.subsection-label {
+  font-size: 0.62rem; font-weight: 600; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--slate); margin-bottom: 1.75rem;
+  padding-bottom: 0.75rem; border-bottom: 1px solid var(--grey);
+}
+.exp-item {
+  padding-bottom: 2rem; margin-bottom: 2rem;
+  border-bottom: 1px solid var(--grey);
+}
+.exp-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.exp-role {
+  font-family: var(--display); font-size: 1.15rem; font-weight: 500;
+  color: var(--navy); margin-bottom: 0.2rem;
+}
+.exp-org {
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--steel); margin-bottom: 0.15rem;
+}
+.exp-date { font-size: 0.68rem; color: var(--slate); letter-spacing: 0.08em; margin-bottom: 0.85rem; }
+.exp-bullets { list-style: none; }
+.exp-bullets li {
+  font-size: 0.83rem; color: var(--slate); line-height: 1.65;
+  padding: 0.25rem 0 0.25rem 1.1rem; position: relative;
+}
+.exp-bullets li::before { content: '—'; position: absolute; left: 0; color: var(--grey); }
+.about-sidebar > * { margin-bottom: 2.5rem; }
+.edu-block { padding-bottom: 2rem; border-bottom: 1px solid var(--grey); }
+.edu-school {
+  font-family: var(--display); font-size: 1.15rem; font-weight: 500;
+  color: var(--navy); margin-bottom: 0.4rem;
+}
+.edu-detail { font-size: 0.82rem; color: var(--slate); line-height: 1.75; }
+.edu-badges { margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.edu-badge {
+  display: inline-block; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; padding: 0.3rem 0.7rem;
+  background: var(--navy); color: var(--cream); opacity: 0; transform: scale(0.8);
+}
+.skill-group { margin-bottom: 1.25rem; }
+.skill-group-label {
+  font-size: 0.6rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--slate); margin-bottom: 0.5rem;
+}
+.skill-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.4rem; }
+.skill-tag {
+  font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; padding: 0.35rem 0.8rem;
+  border: 1px solid var(--grey); color: var(--slate);
+  transition: border-color 0.2s, color 0.2s;
+  opacity: 0; transform: scale(0.8);
+}
+.skill-tag:hover { border-color: var(--steel); color: var(--navy); }
+
+/* ── Contact ── */
+#contact {
+  background: var(--navy); display: flex; flex-direction: column;
+  align-items: center; text-align: center; padding: 7rem 8vw;
+}
+#contact .section-label { color: rgba(217,217,217,0.5); }
+.contact-headline {
+  font-family: var(--display); font-size: clamp(3rem, 5vw, 5.5rem);
+  font-weight: 300; color: var(--cream); line-height: 1.1;
+  margin-bottom: 1.5rem; max-width: 700px;
+}
+.contact-headline em { font-style: italic; color: var(--grey); }
+.contact-word { display: inline-block; opacity: 0; transform: translateY(24px); }
+.contact-sub {
+  color: var(--slate); font-size: 0.88rem; line-height: 1.7;
+  max-width: 440px; margin-bottom: 2.5rem; opacity: 0;
+}
+.contact-email {
+  font-family: var(--display); font-size: 1.3rem; font-weight: 400;
+  color: var(--cream); text-decoration: none;
+  border-bottom: 1px solid rgba(217,217,217,0.35);
+  padding-bottom: 0.25rem; margin-bottom: 3rem; display: inline-block;
+  transition: color 0.2s, border-color 0.2s; opacity: 0;
+}
+.contact-email:hover { color: var(--grey); border-color: var(--grey); }
+.contact-links {
+  display: flex; gap: 2rem; justify-content: center;
+  flex-wrap: wrap; opacity: 0;
+}
+.contact-link {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--slate); text-decoration: none;
+  transition: color 0.2s;
+}
+.contact-link:hover { color: var(--cream); }
+
+/* ── Footer ── */
+footer {
+  background: var(--navy); border-top: 1px solid rgba(92,103,125,0.3);
+  padding: 1.5rem 8vw; display: flex; justify-content: space-between; align-items: center;
+}
+footer p { font-size: 0.68rem; color: rgba(92,103,125,0.7); letter-spacing: 0.08em; }
+
+/* ── Mobile ── */
+@media (max-width: 900px) {
+  #home { grid-template-columns: 1fr; }
+  .hero-right { min-height: 260px; }
+  .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+  .work-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .work-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Loader -->
+<div id="loader">
+  <span class="loader-name">Morgan Anders</span>
+  <div class="loader-track"><div class="loader-fill"></div></div>
+</div>
+
+<!-- Scroll progress -->
+<div id="progress"></div>
+
+<!-- Nav -->
+<nav id="nav">
+  <a href="#home" class="nav-wordmark">M · A</a>
+  <ul class="nav-links">
+    <li><a href="#work">Work</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section id="home">
+  <div class="hero-left">
+    <p class="hero-eyebrow">BFA Film/Television · Screenwriting · DePaul University '26</p>
+    <div class="hero-name">
+      <span class="hero-name-line">Morgan</span>
+      <span class="hero-name-line"><em>Anders</em></span>
+    </div>
+    <p class="hero-tagline">Digital storytelling through writing, editing, and brand design. Based in Chicago.</p>
+    <div class="hero-cta">
+      <a href="#work" class="btn-primary">View Work</a>
+      <a href="#contact" class="btn-ghost">Get in Touch</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-disciplines">
+      <span class="discipline-tag">Writer</span>
+      <span class="discipline-tag">Editor</span>
+      <span class="discipline-tag">Designer</span>
+      <span class="discipline-tag">Cinematographer</span>
+    </div>
+    <div class="hero-bg-text"><p>Story</p></div>
+  </div>
+</section>
+
+<!-- Work -->
+<section id="work">
+  <div class="work-header">
+    <div>
+      <p class="section-label">Selected Work</p>
+      <h2 class="section-title">Projects &amp; <em>Craft</em></h2>
+    </div>
+    <div class="work-filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="writing">Writing</button>
+      <button class="filter-btn" data-filter="editing">Editing</button>
+      <button class="filter-btn" data-filter="design">Design</button>
+    </div>
+  </div>
+  <div class="work-grid">
+    <div class="work-card" data-category="writing">
+      <div class="work-card-media" style="background:#304C62"><span class="card-icon">✍</span></div>
+      <div class="work-overlay">
+        <span class="card-category">Writing / Screenplay</span>
+        <p class="card-title">Feature Screenplay — Project Title</p>
+        <div class="card-arrow">↗</div>
+      </div>
+    </div>
+    <div class="work-card" data-category="editing">
+      <div class="work-card-media" style="background:#1e3a4f"><span class="card-icon">▶</span></div>
+      <div class="work-overlay">
+        <span class="card-category">Video Editing · Premiere Pro</span>
+        <p class="card-title">Short Film — Post-Production</p>
+        <div class="card-arrow">↗</div>
+      </div>
+    </div>
+    <div class="work-card" data-category="design">
+      <div class="work-card-media" style="background:#5C677D"><span class="card-icon">◈</span></div>
+      <div class="work-overlay">
+        <span class="card-category">Graphic Design · Photoshop</span>
+        <p class="card-title">Visual Identity — Brand Name</p>
+        <div class="card-arrow">↗</div>
+      </div>
+    </div>
+    <div class="work-card" data-category="editing">
+      <div class="work-card-media" style="background:#253d52"><span class="card-icon">▶</span></div>
+      <div class="work-overlay">
+        <span class="card-category">Video Editing · Premiere Pro</span>
+        <p class="card-title">Documentary Cut — Project Title</p>
+        <div class="card-arrow">↗</div>
+      </div>
+    </div>
+    <div class="work-card" data-category="writing">
+      <div class="work-card-media" style="background:#3d4f62"><span class="card-icon">✍</span></div>
+      <div class="work-overlay">
+        <span class="card-category">Writing / Screenplay</span>
+        <p class="card-title">Pilot Script — Series Title</p>
+        <div class="card-arrow">↗</div>
+      </div>
+    </div>
+    <div class="work-card" data-category="design">
+      <div class="work-card-media" style="background:#1a2e3f"><span class="card-icon">◈</span></div>
+      <div class="work-overlay">
+        <span class="card-category">Digital Marketing · Design</span>
+        <p class="card-title">Campaign Graphics — CHUSY</p>
+        <div class="card-arrow">↗</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about">
+  <div class="about-intro">
+    <p class="section-label">About</p>
+    <h2 class="section-title">The Person<br>Behind the <em>Work</em></h2>
+    <p class="about-bio">Studying media at DePaul University sparked a passion I didn't expect — the power of narrative to genuinely innovate and excite. I've been chasing that ever since.</p>
+    <p class="about-bio">I believe media is most meaningful when it builds community. My work is driven by a commitment to impactful storytelling that creates real, lasting connections between people.</p>
+    <p class="about-bio">I bring obsessive attention to detail to everything I make. Good enough has never been the goal.</p>
+  </div>
+  <div class="about-grid">
+    <div>
+      <p class="subsection-label">Experience</p>
+      <div class="exp-item">
+        <p class="exp-role">Research Assistant</p>
+        <p class="exp-org">National Association of Scholars · Chicago, IL</p>
+        <p class="exp-date">June 2025 – Present</p>
+        <ul class="exp-bullets">
+          <li>Performed extensive investigative research for a qualitative research study</li>
+          <li>Conducted interviews across a diverse range of subjects and perspectives</li>
+          <li>Wrote detailed, organized reports based on findings throughout the study</li>
+          <li>Created promotional graphics and visual aids to accompany the research</li>
+        </ul>
+      </div>
+      <div class="exp-item">
+        <p class="exp-role">Digital Marketing Intern</p>
+        <p class="exp-org">CHUSY (Chicago United Synagogue Youth) · Northfield, IL</p>
+        <p class="exp-date">December 2023 – May 2024</p>
+        <ul class="exp-bullets">
+          <li>Designed and published weekly newsletters and social media graphics for ~1,000 members across the Chicago region</li>
+          <li>Delegated tasks and collaborated with peers through strong verbal communication</li>
+          <li>Implemented creative ideas while maintaining close attention to detail</li>
+        </ul>
+      </div>
+      <div class="exp-item">
+        <p class="exp-role">Camp Counselor &amp; Transportation Coordinator</p>
+        <p class="exp-org">Ramah Day Camp · Wheeling, IL</p>
+        <p class="exp-date">June 2023 – August 2024</p>
+        <ul class="exp-bullets">
+          <li>Provided individualized support to campers with special needs, ensuring safety and inclusion</li>
+          <li>Collaborated with multidisciplinary teams to implement personalized care plans</li>
+          <li>Managed daily transportation logistics for 35 campers</li>
+        </ul>
+      </div>
+      <div class="exp-item">
+        <p class="exp-role">Music Educator</p>
+        <p class="exp-org">B'nai Tikvah Congregation · Deerfield, IL</p>
+        <p class="exp-date">August 2018 – May 2022</p>
+        <ul class="exp-bullets">
+          <li>Designed and implemented lesson plans for 15 students incorporating Jewish traditions and values</li>
+          <li>Taught academic and music lessons integrating cultural and religious teachings</li>
+          <li>Fostered an inclusive environment for students of diverse abilities</li>
+        </ul>
+      </div>
+    </div>
+    <div class="about-sidebar">
+      <div>
+        <p class="subsection-label">Education</p>
+        <div class="edu-block">
+          <p class="edu-school">DePaul University</p>
+          <p class="edu-detail">
+            BFA in Film/Television<br>
+            Concentration in Screenwriting<br>
+            Minor in Business<br>
+            Chicago, IL · Aug 2022 – June 2026
+          </p>
+          <div class="edu-badges">
+            <span class="edu-badge">3.9 GPA</span>
+            <span class="edu-badge">Dean's List</span>
+            <span class="edu-badge">Dean's Scholarship</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="subsection-label">Skills</p>
+        <div class="skill-group">
+          <p class="skill-group-label">Production</p>
+          <div class="skill-tags">
+            <span class="skill-tag">Premiere Pro</span>
+            <span class="skill-tag">Photoshop</span>
+            <span class="skill-tag">Adobe CC</span>
+            <span class="skill-tag">Cinematography</span>
+            <span class="skill-tag">Lighting</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <p class="skill-group-label">Design &amp; Web</p>
+          <div class="skill-tags">
+            <span class="skill-tag">Graphic Design</span>
+            <span class="skill-tag">Web Design</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <p class="skill-group-label">Professional</p>
+          <div class="skill-tags">
+            <span class="skill-tag">Research</span>
+            <span class="skill-tag">Writing</span>
+            <span class="skill-tag">Communication</span>
+            <span class="skill-tag">Excel</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <p class="skill-group-label">Languages</p>
+          <div class="skill-tags">
+            <span class="skill-tag">Hebrew</span>
+            <span class="skill-tag">Spanish</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="subsection-label">Honors &amp; Awards</p>
+        <ul class="exp-bullets">
+          <li>Dean's Scholarship — DePaul University</li>
+          <li>Student Athlete Award — Deerfield High School, 2022</li>
+          <li>Commendation towards Biliteracy: Spanish, 2022</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact">
+  <p class="section-label">Get in Touch</p>
+  <h2 class="contact-headline">
+    <span class="contact-word">Let's</span>
+    <span class="contact-word">make</span>
+    <span class="contact-word">something</span>
+    <em class="contact-word">great.</em>
+  </h2>
+  <p class="contact-sub">Open to full-time roles, freelance projects, and creative collaborations in film, television, and brand storytelling.</p>
+  <a href="mailto:morgananders@comcast.net" class="contact-email">morgananders@comcast.net</a>
+  <div class="contact-links">
+    <a href="https://www.linkedin.com/in/morgananders18" class="contact-link" target="_blank">LinkedIn</a>
+    <a href="#" class="contact-link">Vimeo</a>
+    <a href="#" class="contact-link">IMDb</a>
+    <a href="https://drive.google.com/file/d/1CB2nkWwDpYDAhAqF5cucTjISBYeEH9Kw/view?usp=sharing" class="contact-link" target="_blank">Resume ↗</a>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 Morgan Anders</p>
+  <p>Chicago, IL · Film &amp; Television · Digital Storytelling</p>
+</footer>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+// ── Scroll progress bar ─────────────────────────────────────────
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+  progress.style.width = (pct * 100) + '%';
+});
+
+// ── Nav shadow + active link ────────────────────────────────────
+const nav = document.getElementById('nav');
+const navLinks = document.querySelectorAll('.nav-links a');
+const sections = document.querySelectorAll('section[id]');
+
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 10);
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+});
+
+// ── Loader → hero sequence ──────────────────────────────────────
+const tl = gsap.timeline();
+
+tl.to('#loader', {
+  opacity: 0, duration: 0.6, delay: 0.9, ease: 'power2.inOut',
+  onComplete: () => { document.getElementById('loader').style.display = 'none'; }
+})
+.to('.hero-eyebrow', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.1')
+.to('.hero-name-line', {
+  opacity: 1, y: 0, duration: 0.75,
+  stagger: 0.15, ease: 'power3.out'
+}, '-=0.3')
+.to('.hero-tagline', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.4')
+.to('.hero-cta',     { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.35')
+.to('.hero-right',   { opacity: 1, duration: 0.8, ease: 'power2.out' }, '-=0.6')
+.to('.hero-bg-text p', { opacity: 1, x: 0, duration: 1, ease: 'power3.out' }, '-=0.5')
+.to('.discipline-tag', {
+  opacity: 1, x: 0, duration: 0.5,
+  stagger: 0.1, ease: 'power3.out'
+}, '-=0.6');
+
+// ── Discipline tags float loop ──────────────────────────────────
+document.querySelectorAll('.discipline-tag').forEach((tag, i) => {
+  gsap.to(tag, {
+    y: -7, duration: 2.6 + i * 0.4,
+    repeat: -1, yoyo: true, ease: 'sine.inOut',
+    delay: 1.8 + i * 0.2,
+  });
+});
+
+// ── Work cards stagger in ───────────────────────────────────────
+gsap.to('.work-card', {
+  opacity: 1, duration: 0.6, stagger: 0.08, ease: 'power2.out',
+  scrollTrigger: { trigger: '.work-grid', start: 'top 80%' }
+});
+
+// ── About intro ─────────────────────────────────────────────────
+gsap.from('.about-intro', {
+  opacity: 0, y: 32, duration: 0.7, ease: 'power3.out',
+  scrollTrigger: { trigger: '.about-intro', start: 'top 82%' }
+});
+
+// ── Experience items slide in from left ─────────────────────────
+gsap.from('.exp-item', {
+  opacity: 0, x: -36, duration: 0.65, stagger: 0.12, ease: 'power3.out',
+  scrollTrigger: { trigger: '.exp-item', start: 'top 85%' }
+});
+
+// ── Education badges pop in ─────────────────────────────────────
+gsap.to('.edu-badge', {
+  opacity: 1, scale: 1, duration: 0.45, stagger: 0.1,
+  ease: 'back.out(1.4)',
+  scrollTrigger: { trigger: '.edu-badges', start: 'top 88%' }
+});
+
+// ── Skill tags pop in ───────────────────────────────────────────
+gsap.to('.skill-tag', {
+  opacity: 1, scale: 1, duration: 0.4, stagger: 0.05,
+  ease: 'back.out(1.6)',
+  scrollTrigger: { trigger: '.skill-tags', start: 'top 88%' }
+});
+
+// ── Contact words stagger ───────────────────────────────────────
+gsap.to('.contact-word', {
+  opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'power3.out',
+  scrollTrigger: { trigger: '.contact-headline', start: 'top 85%' }
+});
+gsap.to('.contact-sub',   { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', scrollTrigger: { trigger: '.contact-sub',   start: 'top 88%' } });
+gsap.to('.contact-email', { opacity: 1, duration: 0.6, ease: 'power2.out',        scrollTrigger: { trigger: '.contact-email', start: 'top 90%' } });
+gsap.to('.contact-links', { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', scrollTrigger: { trigger: '.contact-links', start: 'top 90%' } });
+
+// ── Work filter ─────────────────────────────────────────────────
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const f = btn.dataset.filter;
+    document.querySelectorAll('.work-card').forEach(card => {
+      const show = f === 'all' || card.dataset.category === f;
+      gsap.to(card, { opacity: show ? 1 : 0.15, duration: 0.3, ease: 'power2.out' });
+      card.style.pointerEvents = show ? 'auto' : 'none';
+    });
+  });
+});
+</script>
+</body>
+</html>
